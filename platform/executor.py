@@ -40,16 +40,16 @@ class WindowsAdapterController:
     @classmethod
     def find_adapter_sub_key(cls, adapter_name: str) -> Optional[str]:
         """Resolves the 4-digit registry subkey identifier (e.g. 0001) for a target adapter."""
-        cmd: str = f"(Get-NetAdapter -Name '{adapter_name}').DeviceID"
-        device_id: str = cls.run_powershell(cmd)
-        if not device_id:
-            return None
-
-        try:
-            key_index: int = int(device_id)
-            return f"{key_index:04d}"
-        except ValueError:
-            return None
+        cmd: str = (
+            f"$devId = (Get-NetAdapter -Name '{adapter_name}').DeviceID; "
+            f"Get-ChildItem -Path 'HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Class\\{{4d36e972-e325-11ce-bfc1-08002be10318}}\\????' -ErrorAction SilentlyContinue | "
+            f"ForEach-Object {{ "
+            f"if ((Get-ItemProperty -Path $_.PSPath -Name NetCfgInstanceId -ErrorAction SilentlyContinue).NetCfgInstanceId -eq $devId) "
+            f"{{ $_.PSChildName }} "
+            f"}}"
+        )
+        sub_key: str = cls.run_powershell(cmd)
+        return sub_key if sub_key else None
 
     @classmethod
     def set_mac_address(cls, adapter_name: str, new_mac: str) -> bool:

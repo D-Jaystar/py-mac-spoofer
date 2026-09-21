@@ -5,7 +5,7 @@ import re
 class MACValidator:
     """Utility class for validating MAC addresses"""
 
-    MAC_PATTERN: Final[Pattern[str]] = re.compile(r"^([0-9A-Fa-f]{2}[:])$")
+    MAC_PATTERN: Final[Pattern[str]] = re.compile(r"^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$")
 
     @staticmethod
     def is_valid_format(mac_address: str) -> bool:
